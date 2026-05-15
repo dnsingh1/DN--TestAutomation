@@ -54,4 +54,50 @@ test.describe('Amazon | search wireless mouse | add to cart | verify cart quanti
             });
         });
     });
+
+    /**
+     * Executes the shopping flow using the first non-sponsored search result to reduce flakiness
+     * caused by sponsored placements changing between runs.
+     */
+    test('Amazon | search wireless mouse | add to cart | verify cart quantity 1 (first non-sponsored)', async ({
+        page,
+        logger,
+    }) => {
+        const amazonShoppingFlowPage = new AmazonShoppingFlowPage(page);
+
+        await test.step('Navigate to Amazon home', async () => {
+            logger.info('Navigate to Amazon home');
+            await amazonShoppingFlowPage.navigateToAmazonHome();
+            await expect(page).toHaveURL(/amazon\.com/i);
+        });
+
+        await test.step('Search for product: Wireless Mouse', async () => {
+            logger.info('Search for product: Wireless Mouse');
+            await amazonShoppingFlowPage.searchForProduct('Wireless Mouse');
+            await amazonShoppingFlowPage.submitSearch();
+        });
+
+        await test.step('Open first non-sponsored product from results', async () => {
+            logger.info('Open first non-sponsored product from results');
+            await amazonShoppingFlowPage.selectFirstNonSponsoredProduct();
+        });
+
+        await test.step('Add product to cart', async () => {
+            logger.info('Add product to cart (price=REDACTED)');
+            await amazonShoppingFlowPage.addToCart();
+        });
+
+        await test.step('Open cart', async () => {
+            logger.info('Open cart');
+            await amazonShoppingFlowPage.openCart();
+        });
+
+        await test.step('Verify cart has quantity 1 and correct product', async () => {
+            const capturedTitle = amazonShoppingFlowPage.getCapturedProductTitle();
+            logger.info(`Verify cart contents (title=${capturedTitle ? 'captured' : 'missing'}, price=REDACTED)`);
+
+            expect(capturedTitle, 'Captured product title should be available for cart verification').toBeTruthy();
+            await amazonShoppingFlowPage.verifyCartHasQuantityOneAndProduct(capturedTitle!);
+        });
+    });
 });
