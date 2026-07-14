@@ -21,6 +21,7 @@ export abstract class BasePage {
     // ==================== PAGE NAVIGATION ====================
 
     async navigateTo(url: string): Promise<void> {
+        // Navigation ownership: keep all navigation through BasePage for consistent logging/attachments.
         this.logger.info(`Navigate to: ${url}`);
         this.allureReporter.addStep(`Navigate to: ${url}`);
         await this.page.goto(url, { waitUntil: 'load', timeout: parseInt(ENV.TIMEOUTS.DEFAULT) });
